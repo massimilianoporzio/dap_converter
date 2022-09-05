@@ -78,12 +78,12 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
                       child: SizedBox(
-                        width: 150,
+                        width: 120,
                         child: TextFormField(
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(
@@ -110,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 30),
+                      padding: const EdgeInsets.only(right: 20),
                       child: DropdownButton(
                           value: _fromUnit,
                           items: const [
@@ -123,7 +123,11 @@ class _MyHomePageState extends State<MyHomePage> {
                               child: Text('mGym²'),
                             ),
                           ],
-                          onChanged: (value) {}),
+                          onChanged: (value) {
+                            setState(() {
+                              _fromUnit = value.toString();
+                            });
+                          }),
                     )
                   ],
                 ),
@@ -151,7 +155,11 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Text('mGym²'),
                         ),
                       ],
-                      onChanged: (value) {}),
+                      onChanged: (value) {
+                        setState(() {
+                          _toUnit = value.toString();
+                        });
+                      }),
                 ),
                 const SizedBox(
                   height: 32,
@@ -168,7 +176,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   height: 32,
                 ),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    //TODO: CHECK SE UNITA' UGUALI
+                  },
                   child: const Text('Convert'),
                 )
               ],
