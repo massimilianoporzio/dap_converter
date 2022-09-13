@@ -1,3 +1,4 @@
+import 'package:dap_converter/components/dap_units.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -40,20 +41,50 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+//Validator for double numbers
+
+String? Function(String?) doubleValidator = (String? value) {
+  if (value!.isEmpty) {
+    return 'DAP value must be entered';
+  } else {
+    return double.tryParse(value) == null ? "DAP value must be a number" : null;
+  }
+};
+
 class _MyHomePageState extends State<MyHomePage> {
   final _formKey = GlobalKey<FormState>();
-  double _value = 1.0;
-  final TextEditingController _dapController =
-      TextEditingController(text: "1.0");
+
+  // String get fromDAPString {
+  //   return _fromDAP.toString();
+  // }
+
+  final TextEditingController _dapController = TextEditingController();
+
+  void _printLatestValue() {
+    print('DAP text field: ${_dapController.text}');
+  }
+
   @override
   void dispose() {
     _dapController.dispose();
     super.dispose();
   }
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    _fromDAP = 1.0;
+    _dapController.text = _fromDAP.toString();
+    // Start listening to changes.
+    _dapController.addListener(_printLatestValue);
+  }
+
   double _convertedValue = 1.0;
-  String _fromUnit = "from1";
-  String _toUnit = "to1";
+  late double _fromDAP;
+  String _fromUnit = listaFromUnits[0].value;
+  String _toUnit = listaToUnits[0].value;
 
   @override
   Widget build(BuildContext context) {
@@ -69,120 +100,147 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Form(
-          key: _formKey,
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: SizedBox(
-                        width: 120,
-                        child: TextFormField(
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp('[0-9.,]+')),
-                          ],
-                          validator: MultiValidator([
-                            RequiredValidator(errorText: "Required"),
-                          ]),
-                          controller: _dapController,
-                          decoration: const InputDecoration(
-                            floatingLabelStyle: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold),
-                            labelText: 'DAP to convert',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                        ),
-                      ),
+      body: Form(
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        key: _formKey,
+        child: Container(
+          height: double.infinity,
+          decoration: BoxDecoration(
+              image: DecorationImage(
+                  fit: BoxFit.contain,
+                  colorFilter: ColorFilter.mode(
+                      Colors.black.withOpacity(0.24), BlendMode.dstATop),
+                  image: const AssetImage('images/DAP.jpg'))),
+          width: MediaQuery.of(context).size.width,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 0.0, vertical: 20),
+                child: SizedBox(
+                  width: 200,
+                  child: TextFormField(
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 20),
+                    textAlign: TextAlign.center,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp('[0-9.,]+')),
+                    ],
+                    validator: doubleValidator,
+                    controller: _dapController,
+                    decoration: const InputDecoration(
+                      floatingLabelStyle: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.bold),
+                      labelText: 'DAP to convert',
+                      border: OutlineInputBorder(),
                     ),
-                    const Text(
-                      'from',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 20),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  const Text(
+                    'from',
+                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 20),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 0),
+                    child: DropdownButtonHideUnderline(
                       child: DropdownButton(
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 20),
+                          focusColor: Colors.amber,
                           value: _fromUnit,
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'from1',
-                              child: Text('Gycm²'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'from2',
-                              child: Text('mGym²'),
-                            ),
-                          ],
+                          items: listaFromUnits
+                              .map((e) => DropdownMenuItem(
+                                  value: e.value, child: Text(e.description)))
+                              .toList(),
                           onChanged: (value) {
                             setState(() {
                               _fromUnit = value.toString();
                             });
                           }),
-                    )
-                  ],
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                const Text(
-                  'to',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 0),
-                  child: DropdownButton(
-                      value: _toUnit,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'to1',
-                          child: Text('dGycm²'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'to2',
-                          child: Text('mGym²'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _toUnit = value.toString();
-                        });
-                      }),
-                ),
-                const SizedBox(
-                  height: 32,
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                  decoration: BoxDecoration(border: Border.all()),
-                  child: Text(
-                    '$_convertedValue',
+                    ),
+                  ),
+                  const Text(
+                    'to',
+                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 20),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 0),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton(
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 20),
+                          focusColor: Colors.amber,
+                          value: _toUnit,
+                          items: listaToUnits
+                              .map((e) => DropdownMenuItem(
+                                  value: e.value, child: Text(e.description)))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _toUnit = value.toString();
+                            });
+                          }),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 32,
+              ),
+              SizedBox(
+                width: 200,
+                child: ElevatedButton(
+                  onPressed: () {
+                    //TODO: DO CONVERSION
+                    double fromDAP = double.parse(_dapController.text);
+                    Map mappa = conversionFactors;
+                    dynamic prova = mappa[_fromUnit];
+
+                    double factor = 1.0;
+                    // if (conversionFactorsForUnit != null) {
+                    //   factor = conversionFactorsForUnit[_toUnit] ?? 1.0;
+                    // }
+
+                    print('favctor is ' + factor.toString());
+                    setState(() {
+                      _convertedValue = factor * fromDAP;
+                    });
+                  },
+                  child: const Text(
+                    'Convert',
+                    style: TextStyle(fontSize: 20),
                   ),
                 ),
-                const SizedBox(
-                  height: 32,
+              ),
+              const SizedBox(
+                height: 32,
+              ),
+              Container(
+                width: 200,
+                alignment: Alignment.center,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                decoration: BoxDecoration(border: Border.all()),
+                child: Text(
+                  '$_convertedValue',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      color: Colors.black),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    //TODO: CHECK SE UNITA' UGUALI
-                  },
-                  child: const Text('Convert'),
-                )
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
